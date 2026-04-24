@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>HSK Vocabulary Explorer | Complete Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body data-theme="dark">
+
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-book-open"></i> HSK Vocab</h1>
+                <p>1450+ words</p>
+            </div>
+            <div class="header-actions">
+                <div class="view-control">
+                    <i class="fas fa-th-large"></i>
+                    <select id="viewSelect" class="view-select">
+                        <option value="1">View: 8 cards</option>
+                        <option value="2">View: 6 cards</option>
+                        <option value="3">View: 5 cards</option>
+                        <option value="4">View: 4 cards</option>
+                        <option value="5">View: 3 cards</option>
+                    </select>
+                </div>
+                <button id="themeToggle" class="theme-btn">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-section">
+            <div class="search-wrapper centered">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search: pinyin, English, or Chinese... (e.g., jing, 力, love)" autocomplete="off">
+                <button id="clearSearch" class="clear-btn"><i class="fas fa-times-circle"></i></button>
+            </div>
+        </div>
+
+        <!-- Filters Bar - ONE LINE -->
+        <div class="filters-bar">
+            <!-- Section Filters -->
+            <div class="filter-group">
+                <button data-section="all" class="filter-btn section-btn all-section-btn">All</button>
+                <button data-section="hsk12" class="filter-btn section-btn">HSK 1-2</button>
+                <button data-section="hsk3" class="filter-btn section-btn">HSK 3</button>
+                <button data-section="hsk4" class="filter-btn section-btn">HSK 4</button>
+            </div>
+            
+            <div class="filter-divider"></div>
+            
+            <!-- Type Filters - Only 4 main types -->
+            <div class="filter-group">
+                <button data-type="all" class="type-btn all-type-btn active">All</button>
+                <button data-type="noun" class="type-btn">Noun</button>
+                <button data-type="verb" class="type-btn">Verb</button>
+                <button data-type="adjective" class="type-btn">Adj</button>
+                <button data-type="adverb" class="type-btn">Adv</button>
+                <button data-type="other" class="type-btn">Other</button>
+            </div>
+            
+            <div class="filter-divider"></div>
+            
+            <!-- Range -->
+            <div class="filter-group">
+                <input type="number" id="rangeStart" placeholder="From" class="range-input-mini">
+                <span>—</span>
+                <input type="number" id="rangeEnd" placeholder="To" class="range-input-mini">
+                <button id="applyRangeBtn" class="mini-btn" title="Apply">✓</button>
+                <button id="clearRangeBtn" class="mini-btn" title="Clear">✗</button>
+            </div>
+            
+            <div class="filter-divider"></div>
+            
+            <!-- Sort & Random -->
+            <div class="filter-group">
+                <button id="randomizeBtn" class="icon-btn-mini" title="Randomize">
+                    <i class="fas fa-random"></i>
+                </button>
+                <select id="sortSelect" class="sort-select-mini">
+                    <option value="none">Sort</option>
+                    <option value="az">A → Z</option>
+                    <option value="za">Z → A</option>
+                    <option value="meaning">Meaning</option>
+                </select>
+            </div>
+            
+            <div class="filter-divider"></div>
+            
+            <!-- Actions -->
+            <div class="filter-group">
+                <button id="showBookmarkedBtn" class="icon-btn-mini" title="Bookmarked">
+                    <i class="far fa-bookmark"></i>
+                </button>
+                <button id="resetAllBtn" class="icon-btn-mini" title="Reset All">
+                    <i class="fas fa-undo-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats" id="stats">
+            <span id="wordCount">Loading...</span>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast">📋 Copied!</div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid" id="cardsGrid">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading words...
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <p>Are you sure you want to reset all filters?</p>
+            <p style="font-size: 0.8rem; margin-top: 0.5rem;">(Bookmarks will also be cleared)</p>
+            <div class="modal-buttons">
+                <button id="confirmYes">Yes, Reset</button>
+                <button id="confirmNo">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <template id="cardTemplate">
+        <div class="word-card">
+            <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
+            <div class="word-chinese"></div>
+            <div class="word-hover-content">
+                <div class="word-pinyin"></div>
+                <div class="word-meaning"></div>
+            </div>
+            <div class="word-type-tag"></div>
+        </div>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>
