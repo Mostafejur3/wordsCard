@@ -82,53 +82,39 @@ function smartSearch(words, query) {
         
         // Chinese exact match
         if (word.chinese === lowerQuery) maxScore = 100;
-        // Chinese starts with query
         else if (word.chinese.startsWith(lowerQuery)) maxScore = 95;
-        // Chinese contains (lower score)
         else if (word.chinese.includes(lowerQuery)) maxScore = 70;
         
-        // PINYIN - Only match from start of word or start of pinyin syllable
+        // PINYIN
         const pinyinLower = word.pinyin.toLowerCase();
         const pinyinParts = pinyinLower.split(' ');
         let pinyinMatch = false;
         for (let part of pinyinParts) {
-            if (part.startsWith(lowerQuery)) {
-                pinyinMatch = true;
-                break;
-            }
+            if (part.startsWith(lowerQuery)) { pinyinMatch = true; break; }
         }
         if (pinyinLower.startsWith(lowerQuery)) pinyinMatch = true;
         if (pinyinMatch) maxScore = Math.max(maxScore, 90);
         
-        // Clean pinyin (no tones)
+        // Clean pinyin
         const cleanPinyin = word.pinyin.replace(/[0-9]/g, '');
         const cleanPinyinLower = cleanPinyin.toLowerCase();
         const cleanParts = cleanPinyinLower.split(' ');
         let cleanMatch = false;
         for (let part of cleanParts) {
-            if (part.startsWith(lowerQuery)) {
-                cleanMatch = true;
-                break;
-            }
+            if (part.startsWith(lowerQuery)) { cleanMatch = true; break; }
         }
         if (cleanPinyinLower.startsWith(lowerQuery)) cleanMatch = true;
         if (cleanMatch) maxScore = Math.max(maxScore, 85);
         
-        // English meaning - only match from start of word
+        // English meaning
         const meaningLower = word.meaning.toLowerCase();
         const meaningWords = meaningLower.split(' ');
         if (meaningLower === lowerQuery) maxScore = 100;
         else if (meaningLower.startsWith(lowerQuery)) maxScore = 85;
         else {
             for (let w of meaningWords) {
-                if (w === lowerQuery) {
-                    maxScore = Math.max(maxScore, 90);
-                    break;
-                }
-                if (w.startsWith(lowerQuery)) {
-                    maxScore = Math.max(maxScore, 80);
-                    break;
-                }
+                if (w === lowerQuery) { maxScore = Math.max(maxScore, 90); break; }
+                if (w.startsWith(lowerQuery)) { maxScore = Math.max(maxScore, 80); break; }
             }
         }
         
@@ -151,8 +137,6 @@ async function loadData() {
         if (!response.ok) throw new Error('JSON not found');
         allWords = await response.json();
         console.log('Total words loaded:', allWords.length);
-        
-        // Log bookmark count
         console.log('Bookmarks loaded:', bookmarks.size);
         
         setDefaultSelections();
@@ -165,12 +149,10 @@ async function loadData() {
 
 // ========== DEFAULT SELECTIONS ==========
 function setDefaultSelections() {
-    // Default: HSK4 selected
-    selectedSections.add('hsk4');
-    const hsk4Btn = document.querySelector('.section-btn[data-section="hsk4"]');
-    if (hsk4Btn) hsk4Btn.classList.add('active');
+    selectedSections.add('hsk5');
+    const hsk5Btn = document.querySelector('.section-btn[data-section="hsk5"]');
+    if (hsk5Btn) hsk5Btn.classList.add('active');
     
-    // Default: all types selected
     selectedTypes.clear();
     selectedTypes.add('all');
     const allTypeBtn = document.querySelector('.all-type-btn');
@@ -218,29 +200,24 @@ function getWordSection(word) {
     if (word.hskLevel === 1 || word.hskLevel === 2) return 'hsk12';
     if (word.hskLevel === 3) return 'hsk3';
     if (word.hskLevel === 4) return 'hsk4';
-    return 'hsk4';
+    if (word.hskLevel === 5) return 'hsk5';
+    return 'hsk5';
 }
 
 function updateFilteredPool() {
     let filtered = [...allWords];
     
     if (!isBookmarkedView) {
-        // Apply section filters
         if (selectedSections.size > 0) {
             filtered = filterBySections(filtered, selectedSections);
         }
-        
-        // Apply type filters
         if (!selectedTypes.has('all') && selectedTypes.size > 0) {
             filtered = filterByTypes(filtered, selectedTypes);
         }
-        
-        // Apply range filter
         if (currentRange.start || currentRange.end) {
             filtered = filterByRange(filtered, currentRange.start, currentRange.end);
         }
     } else {
-        // In bookmarked view, filter from bookmarked words only
         filtered = filtered.filter(w => bookmarks.has(w.chinese));
     }
     
@@ -275,23 +252,16 @@ function filterByRange(words, start, end) {
 // ========== SORT FUNCTIONS ==========
 function sortWords(words, sortType) {
     if (sortType === 'none') return words;
-    
     const sorted = [...words];
     switch(sortType) {
-        case 'az':
-            sorted.sort((a, b) => a.chinese.localeCompare(b.chinese, 'zh'));
-            break;
-        case 'za':
-            sorted.sort((a, b) => b.chinese.localeCompare(a.chinese, 'zh'));
-            break;
-        case 'meaning':
-            sorted.sort((a, b) => a.meaning.localeCompare(b.meaning));
-            break;
+        case 'az': sorted.sort((a, b) => a.chinese.localeCompare(b.chinese, 'zh')); break;
+        case 'za': sorted.sort((a, b) => b.chinese.localeCompare(a.chinese, 'zh')); break;
+        case 'meaning': sorted.sort((a, b) => a.meaning.localeCompare(b.meaning)); break;
     }
     return sorted;
 }
 
-// ========== RANDOMIZE FUNCTION ==========
+// ========== RANDOMIZE ==========
 function randomizeDisplay() {
     if (currentFilteredPool.length === 0) return;
     const shuffled = [...currentFilteredPool];
@@ -303,12 +273,13 @@ function randomizeDisplay() {
     renderCards(currentDisplayWords);
 }
 
-// ========== SUMMARY FUNCTION ==========
+// ========== SUMMARY ==========
 function getSelectionSummary() {
     const sections = selectedSections.size ? Array.from(selectedSections).map(s => {
         if (s === 'hsk12') return 'HSK1-2';
         if (s === 'hsk3') return 'HSK3';
         if (s === 'hsk4') return 'HSK4';
+        if (s === 'hsk5') return 'HSK5';
         return s;
     }).join(' + ') : 'All HSK';
     
@@ -320,7 +291,7 @@ function getSelectionSummary() {
     let summary = `${sections} / ${types}`;
     
     if (currentRange.start || currentRange.end) {
-        const range = `${currentRange.start || '1'} - ${currentRange.end || '1450'}`;
+        const range = `${currentRange.start || '1'} - ${currentRange.end || allWords.length}`;
         summary += ` (Range: ${range})`;
     }
     
@@ -331,7 +302,7 @@ function getSelectionSummary() {
     return summary;
 }
 
-// ========== MAIN RENDER FUNCTION ==========
+// ========== MAIN RENDER ==========
 function renderAllCards() {
     const pool = updateFilteredPool();
     let results = [...pool];
@@ -414,7 +385,7 @@ function renderCards(wordsToRender) {
     });
 }
 
-// ========== BOOKMARK FUNCTIONS ==========
+// ========== BOOKMARK ==========
 function toggleBookmark(wordId, btnElement) {
     if (bookmarks.has(wordId)) {
         bookmarks.delete(wordId);
@@ -433,9 +404,6 @@ function toggleBookmark(wordId, btnElement) {
     }
     localStorage.setItem('hsk_bookmarks', JSON.stringify([...bookmarks]));
     
-    console.log('Bookmarks now:', bookmarks.size);
-    
-    // If currently in bookmarked view, refresh the display
     if (isBookmarkedView) {
         renderBookmarked();
     }
@@ -443,7 +411,6 @@ function toggleBookmark(wordId, btnElement) {
 
 function renderBookmarked() {
     const bookmarkedWords = allWords.filter(w => bookmarks.has(w.chinese));
-    console.log('Rendering bookmarked words:', bookmarkedWords.length);
     
     if (bookmarkedWords.length === 0) {
         cardsGrid.innerHTML = '<div class="empty-state"><i class="fas fa-bookmark"></i><h3>No bookmarked words</h3><p>Click the bookmark icon on any word to save it here!</p></div>';
@@ -454,7 +421,7 @@ function renderBookmarked() {
     }
 }
 
-// ========== THEME FUNCTIONS ==========
+// ========== THEME ==========
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);
@@ -475,7 +442,7 @@ if (themeToggle) {
 const allSectionBtn = document.querySelector('.all-section-btn');
 if (allSectionBtn) {
     allSectionBtn.addEventListener('click', () => {
-        if (selectedSections.size === 3) {
+        if (selectedSections.size === 4) {
             clearAllSections();
         } else {
             selectAllSections();
@@ -509,8 +476,7 @@ document.querySelectorAll('.section-btn:not(.all-section-btn)').forEach(btn => {
             btn.classList.add('active');
         }
         
-        // Update ALL button state
-        if (selectedSections.size === 3) {
+        if (selectedSections.size === 4) {
             allSectionBtn?.classList.add('active');
         } else {
             allSectionBtn?.classList.remove('active');
@@ -539,7 +505,6 @@ document.querySelectorAll('.type-btn:not(.all-type-btn)').forEach(btn => {
             btn.classList.add('active');
         }
         
-        // If no types selected, default to 'all'
         if (selectedTypes.size === 0) {
             selectAllTypes();
         }
@@ -555,7 +520,7 @@ if (applyRangeBtn) {
     applyRangeBtn.addEventListener('click', () => {
         const start = parseInt(rangeStart.value);
         const end = parseInt(rangeEnd.value);
-        if ((start > 0 && start <= 1450) || (end > 0 && end <= 1450)) {
+        if ((start > 0 && start <= allWords.length) || (end > 0 && end <= allWords.length)) {
             currentRange = {
                 start: start > 0 ? start : null,
                 end: end > 0 ? end : null
@@ -576,7 +541,7 @@ if (clearRangeBtn) {
     });
 }
 
-// Randomize button
+// Randomize
 if (randomizeBtn) {
     randomizeBtn.addEventListener('click', () => {
         if (currentFilteredPool.length > 0) {
@@ -585,7 +550,7 @@ if (randomizeBtn) {
     });
 }
 
-// Sort select
+// Sort
 if (sortSelect) {
     sortSelect.addEventListener('change', () => {
         currentSort = sortSelect.value;
@@ -593,7 +558,7 @@ if (sortSelect) {
     });
 }
 
-// Search input
+// Search
 if (searchInput) {
     searchInput.addEventListener('input', () => {
         isBookmarkedView = false;
@@ -609,16 +574,14 @@ if (clearSearchBtn) {
     });
 }
 
-// ========== BOOKMARK VIEW BUTTON ==========
+// Bookmark view
 if (showBookmarkedBtn) {
     showBookmarkedBtn.addEventListener('click', () => {
         if (isBookmarkedView) {
-            // Exit bookmarked view
             isBookmarkedView = false;
             showBookmarkedBtn.classList.remove('active');
             renderAllCards();
         } else {
-            // Enter bookmarked view
             isBookmarkedView = true;
             showBookmarkedBtn.classList.add('active');
             renderBookmarked();
@@ -626,7 +589,7 @@ if (showBookmarkedBtn) {
     });
 }
 
-// ========== RESET BUTTON WITH CONFIRMATION ==========
+// Reset
 if (resetAllBtn) {
     resetAllBtn.addEventListener('click', () => {
         if (confirmModal) confirmModal.style.display = 'flex';
@@ -638,37 +601,25 @@ const confirmNo = document.getElementById('confirmNo');
 
 if (confirmYes) {
     confirmYes.addEventListener('click', () => {
-        // Reset search
         searchInput.value = '';
-        
-        // Reset sections
         selectedSections.clear();
-        
-        // Reset types
         selectedTypes.clear();
-        
-        // Reset range
         currentRange = { start: null, end: null };
         currentSort = 'none';
         isBookmarkedView = false;
         
-        // ⚠️ COMMENT THESE LINES IF YOU WANT TO KEEP BOOKMARKS ON RESET ⚠️
         bookmarks.clear();
         localStorage.removeItem('hsk_bookmarks');
         
-        // Reset UI elements
         if (sortSelect) sortSelect.value = 'none';
         if (rangeStart) rangeStart.value = '';
         if (rangeEnd) rangeEnd.value = '';
         
-        // Remove active classes
         document.querySelectorAll('.section-btn, .type-btn').forEach(b => b.classList.remove('active'));
         
-        // Set default selections
         setDefaultSelections();
         
         if (showBookmarkedBtn) showBookmarkedBtn.classList.remove('active');
-        
         if (confirmModal) confirmModal.style.display = 'none';
         
         renderAllCards();
